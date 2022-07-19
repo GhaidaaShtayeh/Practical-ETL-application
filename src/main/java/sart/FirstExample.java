@@ -25,27 +25,31 @@ public class FirstExample {
                 .getOrCreate();
 
         // Read csv files locally
-        Dataset<Row> originalTheftsTable = spark.read().option("delimiter", ",").option("header", "true").csv(theftsPath);
-        Dataset<Row> originalCars = spark.read().option("delimiter", ",").option("header", "true").csv(carPath);
+        Dataset<Row> originalTheftsTable = spark.read().option("delimiter", ",").option("header", "true").csv(theftsPath).cache();
+        Dataset<Row> originalCars = spark.read().option("delimiter", ",").option("header", "true").csv(carPath).cache();
 
         // DataSets pre-processing
-        Dataset<Row> modelTheftsTable =originalTheftsTable.select("Make/Model" , "Thefts" , "Model Year").withColumnRenamed("Make/Model" , "Car_Model").withColumnRenamed("Model Year" , "Year");
-        Dataset<Row> carsTheftsTable =modelTheftsTable.selectExpr("Thefts", "Year" ,"split(Car_Model, ' ')[0] as Car_Model","split(Car_Model, ' ')[1] as Model2");
+        Dataset<Row> modelTheftsTable =originalTheftsTable.withColumnRenamed("Make/Model" , "Car_Model").withColumnRenamed("Model Year" , "Year").cache();
 
-
-        carsTheftsTable.show(20);
+        System.out.print("Thefts Table Data : ");
+        modelTheftsTable.show(5);
 
         // cars table renaming column
-        Dataset<Row> carsTable =originalCars.withColumnRenamed("Car Brand" , "Car_Model");
-        Dataset<Row> updatedCars = carsTable.join(carsTheftsTable, "Car_Model");
+        Dataset<Row> carsTable =originalCars.withColumnRenamed("Car Brand" , "Car_Brand").cache();
 
-        updatedCars.show(20);
+        System.out.print("cars Table Data : ");
+        carsTable.show(5);
 
+        Dataset<Row> updatedCarTable =  carsTable.join(modelTheftsTable)
+                .filter(modelTheftsTable.col("Car_Model").contains(carsTable.col("Car_Brand"))).cache();
+
+        System.out.print("cars and thefts table after join  : ");
+        updatedCarTable.show(50);
 
         // DataSets pre-processing dropping nulls values in the table
-        Long countF = updatedCars.count();
+        Long countF = updatedCarTable.count();
         System.out.print(countF + " before dropping nulls values ");
-        Dataset<Row> carTheftsTable = updatedCars.na().drop();
+        Dataset<Row> carTheftsTable = updatedCarTable.na().drop();
         long count = carTheftsTable.count();
         System.out.print(count + " after dropping nulls values ");
 
@@ -54,16 +58,8 @@ public class FirstExample {
 
         //Partition based in car model column :
 
-        updatedCars.repartition(functions.col("Car_Model")).show(20);
+        System.out.print("cars and thefts table after repartitioning according to Car_Brand column  : ");
+        updatedCarTable.repartition(functions.col("Car_Brand")).cache().show(20 , false);
 
-
-        //Thefts Table grouping
-     /*   Dataset<Row> theftsTable =carsTheftsTable.groupBy("Car_Model").agg(functions.sum(functions.col("Thefts")));
-        theftsTable.show(20);
-        // cars table renaming column
-        Dataset<Row> carsTable =originalCars.withColumnRenamed("Car Brand" , "Car_Model");
-        Dataset<Row> updatedCars = carsTable.join(theftsTable, "Car_Model");
-        updatedCars.show(10);
-*/
     }
 }

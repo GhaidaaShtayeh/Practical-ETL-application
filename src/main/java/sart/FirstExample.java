@@ -1,17 +1,5 @@
 package sart;
-
-import org.apache.spark.SparkConf;
-import org.apache.spark.SparkContext;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.*;
-import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.sql.types.DataType;
-import org.apache.spark.sql.types.DataTypes;
-
-import java.util.Arrays;
-import java.util.Iterator;
-
 public class FirstExample {
     public static void main(String[] args) {
         final  String theftsPath = "src/main/java/sart/2015_State_Top10Report_wTotalThefts.csv";
@@ -28,43 +16,42 @@ public class FirstExample {
         Dataset<Row> originalTheftsTable = spark.read().option("delimiter", ",").option("header", "true").csv(theftsPath).cache();
         Dataset<Row> originalCars = spark.read().option("delimiter", ",").option("header", "true").csv(carPath).cache();
 
+
         // DataSets pre-processing
-        Dataset<Row> modelTheftsTable =originalTheftsTable.withColumnRenamed("Make/Model" , "Car_Model").withColumnRenamed("Model Year" , "Year").cache();
+        Dataset<Row> modelTable =originalTheftsTable.withColumnRenamed("Make/Model" , "Car_Model").withColumnRenamed("Model Year" , "Year").cache();
+        Dataset<Row> modelTheftsTable =modelTable.select("Car_Model");
 
         System.out.print("Thefts Table Data : ");
         modelTheftsTable.show(5);
 
         // cars table renaming column
-        Dataset<Row> carsTable =originalCars.withColumnRenamed("Car Brand" , "Car_Brand").cache();
+        Dataset<Row> carsTable = originalCars.withColumnRenamed("Car Brand" , "Car_Brand").cache();
 
         System.out.print("cars Table Data : ");
         carsTable.show(5);
 
-        Dataset<Row> updatedCarTable =  carsTable.join(modelTheftsTable)
-                .filter(modelTheftsTable.col("Car_Model").contains(carsTable.col("Car_Brand"))).cache();
+        Dataset<Row> updatedCarTable =  carsTable.join(modelTheftsTable,(modelTheftsTable.col("Car_Model").contains(carsTable.col("Car_Brand")))).cache();
 
         System.out.print("cars and thefts table after join  : ");
         updatedCarTable.show(50);
 
-        // DataSets pre-processing dropping nulls values in the table
-        Long countF = updatedCarTable.count();
-        System.out.print(countF + " before dropping nulls values ");
-        Dataset<Row> carTheftsTable = updatedCarTable.na().drop();
-        long count = carTheftsTable.count();
-        System.out.print(count + " after dropping nulls values ");
+        // DataSets checking
+        long count = updatedCarTable.count();
+        System.out.print(count + " :  after || before : " + originalTheftsTable.count());
 
         // the results show that are no nulls values in the table
 
-
         //Partition based in car model column :
-
-        Dataset<Row> carsTheftsFinal = updatedCarTable.repartition(functions.col("Car_Brand")).cache();
-        System.out.print("cars and thefts table after repartitioning according to Car_Brand column  : ");
+        Dataset<Row> carsTheftsFinal = updatedCarTable.repartition(functions.col("Car_Brand")).withColumnRenamed("Country of Origin" , "Origin").cache();
+        System.out.print("repartition");
         carsTheftsFinal.show(20 , false);
 
-        carsTheftsFinal.join(carsTable,"Car_Brand").show(50,false);
+        Dataset<Row> carsTheftsFinal2 =carsTheftsFinal.join(modelTable,"Car_Model").cache();
+         carsTheftsFinal2.show(35,false);
 
-
-
+        //most 5 countries from where Americans buy their thefted cars
+            Dataset<Row> topThefts = carsTheftsFinal2.select("Origin","Thefts").groupBy("Origin").agg(functions.sum(functions.col("Thefts"))).cache();
+        //    topThefts.orderBy(functions.col("sum(Thefts)").desc()).write().save("data.csv");
+             topThefts.show(5);
     }
 }

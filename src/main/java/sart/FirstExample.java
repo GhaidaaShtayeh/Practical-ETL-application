@@ -58,8 +58,13 @@ public class FirstExample {
 
         //Partition based in car model column :
 
+        Dataset<Row> carsTheftsFinal = updatedCarTable.repartition(functions.col("Car_Brand")).cache();
         System.out.print("cars and thefts table after repartitioning according to Car_Brand column  : ");
-        updatedCarTable.repartition(functions.col("Car_Brand")).cache().show(20 , false);
+        carsTheftsFinal.show(20 , false);
+
+        carsTheftsFinal.join(carsTable,"Car_Brand").show(50,false);
+
+
 
     }
 }

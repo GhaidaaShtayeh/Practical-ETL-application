@@ -1,1 +1,1 @@
-# Spark
+# Practical ETL application

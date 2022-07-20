@@ -1,9 +1,9 @@
 package sart;
 import org.apache.spark.sql.*;
-public class FirstExample {
+public class carsThefts {
     public static void main(String[] args) {
-        final  String theftsPath = "src/main/java/sart/2015_State_Top10Report_wTotalThefts.csv";
-        final  String carPath = "src/main/java/sart/cars.csv";
+        final  String theftsPath = "src/main/java/sart/data/2015_State_Top10Report_wTotalThefts.csv";
+        final  String carPath = "src/main/java/sart/data/cars.csv";
 
         //create spark session
         SparkSession spark = SparkSession.builder()
@@ -51,7 +51,7 @@ public class FirstExample {
 
         //most 5 countries from where Americans buy their thefted cars
             Dataset<Row> topThefts = carsTheftsFinal2.select("Origin","Thefts").groupBy("Origin").agg(functions.sum(functions.col("Thefts"))).cache();
-        //    topThefts.orderBy(functions.col("sum(Thefts)").desc()).write().save("data.csv");
-             topThefts.show(5);
+            Dataset<Row> csvFile = topThefts.orderBy(functions.col("sum(Thefts)").desc());
+            csvFile.show(5);
     }
 }

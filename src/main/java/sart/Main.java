@@ -78,7 +78,7 @@ public class Main{
         Dataset<Row> topThefts = carsTheftsFinal.select("Origin", "Thefts").groupBy("Origin").agg(functions.sum(functions.col("Thefts"))).cache();
         Dataset<Row> csvFile = topThefts.orderBy(functions.col("sum(Thefts)").desc()).cache();
 
-        //csvFile.coalesce(1).write().mode("overwrite").format("com.databricks.spark.csv").option("header", "true").csv("src/main/java/sart/topFive");
+        csvFile.coalesce(1).write().option("header","true").format("csv").save("src/main/java/sart/topFive");
         csvFile.show(5);
     }
 }

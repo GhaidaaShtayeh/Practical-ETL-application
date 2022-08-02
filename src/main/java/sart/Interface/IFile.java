@@ -6,7 +6,8 @@ import org.apache.spark.sql.SparkSession;
 
 public interface IFile {
     public Dataset<Row> readFile(String path , SparkSession spark);
-    public Dataset<Row> columnRename (Dataset<Row> dataset , String oldName , String newName);
+    public Dataset<Row> columnRename (Dataset<Row> dataset , String oldColumnName , String newColumnName);
     public void dataSetCount(Dataset<Row> dataset);
-    public Dataset<Row> partitioning ( Dataset<Row> datasetOriginal , String partitionColumn);
+    public Dataset<Row> partitioning ( Dataset<Row> originalDataset , String partitionColumn);
+    public void saveAsCSV (Dataset<Row> dataset);
 }

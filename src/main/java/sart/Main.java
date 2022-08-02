@@ -62,23 +62,16 @@ public class Main{
 
         Dataset<Row> updatesNew = updates.withColumnRenamed("Model Year", "Year2").withColumnRenamed("Thefts", "Thefts2").withColumnRenamed("Make/Model" , "Car_Model2").withColumnRenamed("State" , "State2").cache();
 
-        Dataset<Row> updatesNe2 = carsTheftsFinal.join(updatesNew, carsTheftsFinal.col("State").equalTo(updatesNew.col("State2")).and(carsTheftsFinal.col("Year").equalTo(updatesNew.col("Year2")))
-                        .and(carsTheftsFinal.col("Car_Model").equalTo(updatesNew.col("Car_Model2"))),"left")
-                .withColumn("Thefts",
-                        functions.when(functions.col("Thefts2").isNotNull(), functions.col("Thefts2")).otherwise(functions.col("Thefts"))
-                )
-                // finally, we drop duplicated
-                .drop("Thefts2","State2" , "Car_Model2" , "Year2" , "Rank").cache();
-
+        Dataset<Row> updatesNe2 = temp.updateCarTable(updatesNew,carsTheftsFinal);
+        updatesNe2.show(15);
         System.out.print("updated");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
         //most 5 countries from where Americans buy their thefted cars
-        Dataset<Row> topThefts = carsTheftsFinal.select("Origin", "Thefts").groupBy("Origin").agg(functions.sum(functions.col("Thefts"))).cache();
-        Dataset<Row> csvFile = topThefts.orderBy(functions.col("sum(Thefts)").desc()).cache();
+        Dataset<Row> csvFile = temp.topCountries(carsTheftsFinal);
 
-        csvFile.coalesce(1).write().option("header","true").format("csv").save("src/main/java/sart/topFiveCountries");
+        temp.saveAsCSV(csvFile);
         csvFile.show(5);
     }
 }

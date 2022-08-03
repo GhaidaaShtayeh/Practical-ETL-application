@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="Sparktask" />
         <module name="Spark" />
+        <module name="Practical-ETL-application55" />
         <module name="Practical-ETL-application10" />
         <module name="spark" />
       </profile>

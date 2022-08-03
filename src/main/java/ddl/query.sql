@@ -1,5 +1,24 @@
-Create table car
- (id int, car_brand VARCHAR , country_of_origin VARCHAR)
- ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde' WITH SERDEPROPERTIES (   'separatorChar'=','  ,'quoteChar'    ='\"' )
- STORED AS TEXTFILE
- location 'hdfs:///user/harssing/bds/' TBLPROPERTIES('skip.header.line.count'='1');
+
+ CREATE EXTERNAL TABLE `document`(
+   `id` int,
+   `prospect_id` double,
+   `brand_id` int,
+   `position_id` int,
+   `s3_path` string,
+   `is_shared_path` boolean,
+   `document_lookup_id` int,
+  `document_lookup_set_id` int,
+   `document_lookup_set_template` string,
+   `document_set_id` int,
+   `document_set_name` string,
+   `state_changed_on` timestamp)
+ PARTITIONED BY (
+   `nfghfghfhghgfghfghfghfghfghf` int)
+ ROW FORMAT SERDE
+   'org.apache.hadoop.hive.ql.io.orc.OrcSerde'
+ STORED AS INPUTFORMAT
+   'org.apache.hadoop.hive.ql.io.orc.OrcInputFormat'
+ OUTPUTFORMAT
+   'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'
+ LOCATION
+   's3://taks/yourName/table';

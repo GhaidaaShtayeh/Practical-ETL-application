@@ -42,7 +42,7 @@ public class Car implements IFile {
 
     @Override
     public void saveAsCSV(Dataset<Row> dataset) {
-        dataset.coalesce(1).write().option("header","true").format("csv").save("src/main/java/sart/topFiveCountries");
+        dataset.coalesce(1).write().option("header","true").format("csv").mode("overwrite").save("src/main/java/sart/topFiveCountries");
     }
 
     public Dataset<Row> joinCarTable(Dataset<Row> originalData , Dataset<Row> joinedTable , String carColumnName , String joinedTableColumnName ){

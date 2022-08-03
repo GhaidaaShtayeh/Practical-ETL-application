@@ -39,8 +39,30 @@ public class Car implements IFile {
         Dataset<Row> partioinDataSet = datasetOriginal.repartition(functions.col(partitionColumn));
         return partioinDataSet;
     }
+
+    @Override
+    public void saveAsCSV(Dataset<Row> dataset) {
+        dataset.coalesce(1).write().option("header","true").format("csv").mode("overwrite").save("src/main/java/sart/topFiveCountries");
+    }
+
     public Dataset<Row> joinCarTable(Dataset<Row> originalData , Dataset<Row> joinedTable , String carColumnName , String joinedTableColumnName ){
         Dataset<Row> updatedCarTable = originalData.join(joinedTable, (joinedTable.col(joinedTableColumnName).contains(originalData.col(carColumnName)))).cache();
         return updatedCarTable;
+    }
+    public Dataset<Row> updateCarTable(Dataset<Row> updatedDataset , Dataset<Row> originalDataset){
+
+        Dataset<Row> finalDataset = originalDataset.join(updatedDataset, originalDataset.col("State").equalTo(updatedDataset.col("State2")).and(originalDataset.col("Year").equalTo(updatedDataset.col("Year2")))
+                        .and(originalDataset.col("Car_Model").equalTo(updatedDataset.col("Car_Model2"))),"left")
+                .withColumn("Thefts",
+                        functions.when(functions.col("Thefts2").isNotNull(), functions.col("Thefts2")).otherwise(functions.col("Thefts"))
+                )
+                // finally, we drop duplicated
+                .drop("Thefts2","State2" , "Car_Model2" , "Year2" , "Rank").cache();
+        return finalDataset;
+    }
+    public Dataset<Row> topCountries(Dataset<Row> dataset){
+        Dataset<Row> selectedCountingDataset = dataset.select("Origin", "Thefts").groupBy("Origin").agg(functions.sum(functions.col("Thefts"))).cache();
+        Dataset<Row> finalDataset = selectedCountingDataset.orderBy(functions.col("sum(Thefts)").desc()).cache();
+        return finalDataset;
     }
 }

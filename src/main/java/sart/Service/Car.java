@@ -39,18 +39,16 @@ public class Car implements IFile {
         Dataset<Row> partioinDataSet = datasetOriginal.repartition(functions.col(partitionColumn));
         return partioinDataSet;
     }
-
     @Override
     public void saveAsCSV(Dataset<Row> dataset) {
         dataset.coalesce(1).write().option("header","true").format("csv").mode("overwrite").save("src/main/java/sart/topFiveCountries");
     }
-
     public Dataset<Row> joinCarTable(Dataset<Row> originalData , Dataset<Row> joinedTable , String carColumnName , String joinedTableColumnName ){
-        Dataset<Row> updatedCarTable = originalData.join(joinedTable, (joinedTable.col(joinedTableColumnName).contains(originalData.col(carColumnName)))).cache();
+        Dataset<Row> updatedCarTable = originalData.join(joinedTable, (joinedTable.col(joinedTableColumnName)
+                                                    .contains(originalData.col(carColumnName)))).cache();
         return updatedCarTable;
     }
     public Dataset<Row> updateCarTable(Dataset<Row> updatedDataset , Dataset<Row> originalDataset){
-
         Dataset<Row> finalDataset = originalDataset.join(updatedDataset, originalDataset.col("State").equalTo(updatedDataset.col("State2")).and(originalDataset.col("Year").equalTo(updatedDataset.col("Year2")))
                         .and(originalDataset.col("Car_Model").equalTo(updatedDataset.col("Car_Model2"))),"left")
                 .withColumn("Thefts",

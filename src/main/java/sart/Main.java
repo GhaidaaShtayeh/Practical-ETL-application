@@ -44,19 +44,18 @@ public class Main{
         // cars table renaming column
         Dataset<Row> carsTable = temp.columnRename(originalCars , "Car Brand", "Car_Brand" );
 
-        /*
-        extract a dataset which contains the car model (from the dataset) and the
-        country of origin of this car from another data set
-        joined 2 tables cars with thefts and model and country
-         */
+
 
         Dataset<Row> updatedCarTable = temp.joinCarTable(carsTable , modelTheftsTable , "Car_Brand", "Car_Model");
         System.out.print("cars and thefts table after join  : \n");
         updatedCarTable.show(50);
 
+        //updatedCarTable.write().option("header","true").mode("overwrite").saveAsTable("cars_thefts.updatedCarTable")
+
         // DataSets checking
         temp.dataSetCount(updatedCarTable);
 
+        System.out.print("******************************************************************************");
         //////////////////////////////////////////////////////////////////////////////////////
         //Partition based in temp model column :
 
@@ -65,6 +64,10 @@ public class Main{
         System.out.print("repartition \n");
         carsTheftsFinal.show(10);
 
+        //carsTheftsFinal.write().option("header","true").mode("overwrite").saveAsTable("cars_thefts.carsTheftsFinal")
+
+        System.out.print("******************************************************************************");
+
         ////////////////////////////////////////////////////////////////////////////////////
 
         // table which I need to update carThefts Table with need renaming columns on it to make join easier to track
@@ -72,14 +75,16 @@ public class Main{
         Dataset<Row> updatedTable = updates.withColumnRenamed("Model Year", "Year2").withColumnRenamed("Thefts", "Thefts2").withColumnRenamed("Make/Model" , "Car_Model2").withColumnRenamed("State" , "State2").cache();
 
         Dataset<Row> carsTheftsWithUpdate = temp.updateCarTable(updatedTable,carsTheftsFinal);
-        carsTheftsWithUpdate.show(15);
         System.out.print("updated");
+        carsTheftsWithUpdate.show(15);
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
+        //carsTheftsWithUpdate.write().option("header","true").mode("overwrite").saveAsTable("cars_thefts.carsTheftsWithUpdate")
+
+      ////////////////////////////////////////////////////////////////////////////////////////////////////
 
         //most 5 countries from where Americans buy their number of thefts cars
 
-        Dataset<Row> csvFile = temp.topCountries(carsTheftsFinal);
+        Dataset<Row> csvFile = temp.topCountries(carsTheftsWithUpdate);
         temp.saveAsCSV(csvFile);
         csvFile.show(5);
     }

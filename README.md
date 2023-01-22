@@ -1,2 +1,4 @@
 # Practical ETL application
-Two datasets first one represent the car theft happened in the US, each row in the dataset represents a the number of thefts happened to a car model (made by a car manufacturer) Also attached another dataset of different car manufacturer with their country of origin
+
+## overview
+A practical ETL application for these two datasets could involve combining the information from both datasets to gain insights into the relationship between car manufacturer country of origin and car thefts in the US. This could be done by performing a join operation on the two datasets based on the car manufacturer name. Once the data is combined, various analyses could be performed such as calculating the percentage of car thefts for each manufacturer or grouping manufacturers by country of origin to see if thefts are more likely to occur for cars made in certain countries. The resulting insights could be used to inform policy decisions or aid in the development of new security features for cars.
